@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 interface InterviewNotes {
@@ -33,6 +33,54 @@ function App() {
     highLevelDesign: '',
     deepDive: ''
   });
+
+  useEffect(() => {
+    const savedSession = localStorage.getItem('interview-session');
+    if (savedSession) {
+      try {
+        const sessionData = JSON.parse(savedSession);
+
+        fetch(`http://localhost:8000/api/interview/validate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ session_id: sessionData.sessionId })
+        })
+        .then(response => {
+          if (response.ok) {
+            setSessionId(sessionData.sessionId);
+            setQuestion(sessionData.question);
+            setNotes(sessionData.notes);
+            setEvaluations(sessionData.evaluations);
+            setInterviewStarted(true);
+          } else {
+            localStorage.removeItem('interview-session');
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('interview-session');
+        });
+      } catch (error) {
+        console.error('Error loading saved session:', error);
+        localStorage.removeItem('interview-session');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (interviewStarted && sessionId) {
+      const sessionData = {
+        sessionId,
+        question,
+        notes,
+        evaluations
+      };
+      localStorage.setItem('interview-session', JSON.stringify(sessionData));
+    } else if (!interviewStarted) {
+      localStorage.removeItem('interview-session');
+    }
+  }, [interviewStarted, sessionId, question, notes, evaluations]);
 
   const handleStartInterview = async () => {
     try {

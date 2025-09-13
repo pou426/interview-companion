@@ -45,6 +45,9 @@ class EvaluateResponse(BaseModel):
     feedback: str
     score: Optional[int] = None
 
+class ValidateSessionRequest(BaseModel):
+    session_id: str
+
 # In-memory session storage (in production, use Redis or database)
 interview_sessions: Dict[str, InterviewSession] = {}
 session_expiry: Dict[str, datetime] = {}
@@ -229,6 +232,23 @@ async def evaluate_section(request: EvaluateRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to evaluate section: {str(e)}")
+
+@app.post("/api/interview/validate")
+async def validate_session(request: ValidateSessionRequest):
+    """Validate if a session ID is still active."""
+    try:
+        cleanup_expired_sessions()
+
+        session = interview_sessions.get(request.session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found or expired")
+
+        return {"status": "valid"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to validate session: {str(e)}")
 
 @app.delete("/api/interview/{session_id}")
 async def end_interview(session_id: str):
