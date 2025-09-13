@@ -16,6 +16,7 @@ from langchain_openai import ChatOpenAI
 
 from questions import get_system_design_questions
 from interviewer import InterviewSession, InterviewerPersona
+from prompts import get_evaluation_prompt
 
 # Load environment variables
 load_dotenv()
@@ -180,26 +181,7 @@ async def evaluate_section(request: EvaluateRequest):
             raise HTTPException(status_code=404, detail="Interview session not found or expired")
 
         # Create evaluation prompt
-        evaluation_prompt = f"""
-        As an experienced system design interviewer, evaluate the following section from a candidate's interview:
-
-        Section: {request.section}
-        Content: {request.content}
-        Question: {session.question}
-
-        Please provide:
-        1. A concise evaluation (2-3 sentences max)
-        2. Key strengths and areas for improvement
-        3. A score from 1-5 (5 being excellent)
-
-        Focus on:
-        - Completeness and accuracy
-        - Depth of thinking
-        - Realistic considerations
-        - Clear communication
-
-        Keep your response concise and actionable.
-        """
+        evaluation_prompt = get_evaluation_prompt(request.section, request.content, session.question)
 
         # Get AI evaluation through the session's LLM
         from langchain.schema import SystemMessage, HumanMessage
