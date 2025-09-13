@@ -33,9 +33,17 @@
 2. **Start Backend (FastAPI)**:
    ```bash
    cd src/backend
+
+   # Set up environment (copy and edit .env.example)
+   cp .env.example .env
+   # Edit .env and add your OpenAI API key
+
+   # Install dependencies
    python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
+
+   # Start server
    python3 main.py
    ```
    *Backend runs on http://localhost:8000*
@@ -56,17 +64,17 @@
 interview-companion/
 ├── src/
 │   ├── backend/
-│   │   ├── main.py              # FastAPI server
-│   │   └── requirements.txt     # Backend dependencies
-│   ├── frontend/
-│   │   ├── src/                 # React application
-│   │   ├── package.json         # Frontend dependencies
-│   │   └── ...                  # React configuration
-│   ├── main.py                  # CLI interviewer (see below)
-│   ├── interviewer.py           # AI interviewer logic & prompts
-│   └── questions.py             # Question database
-├── .env                         # Environment variables
-└── requirements.txt             # CLI dependencies
+│   │   ├── main.py              # FastAPI server with LangChain integration
+│   │   ├── interviewer.py       # AI interviewer logic & prompts
+│   │   ├── questions.py         # Question database
+│   │   ├── requirements.txt     # Backend dependencies
+│   │   └── .env.example         # Environment variables template
+│   └── frontend/
+│       ├── src/                 # React TypeScript application
+│       ├── package.json         # Frontend dependencies
+│       └── ...                  # React configuration files
+├── .env.example                 # Global environment template
+└── README.md                    # This file
 ```
 
 ## Sample Questions
@@ -84,42 +92,6 @@ The system includes 20+ carefully selected system design questions:
 - Design a distributed cache system like Redis
 - Design a file storage service like Dropbox or Google Drive
 - And 10+ more...
-
----
-
-## 🖥️ Exploratory CLI Program
-
-For those who prefer command-line interfaces or want to explore the core interview logic:
-
-### Features
-- 🎯 **Interactive Interview Sessions**: Step-by-step guided interviews with AI feedback
-- 🧠 **Memory & Context**: Conversation history maintained throughout the session
-- 📊 **Phase-based Structure**: Clarifications → Requirements → Design → Deep Dive
-- 💡 **Smart Guidance**: AI provides ratings and specific improvement suggestions
-
-### Setup & Usage
-
-```bash
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment
-echo "OPENAI_API_KEY=your-openai-api-key-here" > .env
-
-# Run the interactive CLI interviewer
-python src/main.py
-```
-
-### CLI Commands
-- Type your responses to interviewer questions
-- `quit` - Exit the interview session
-- `help` - Show available commands
-
-The CLI program uses the same AI interviewer logic as the web application but in a terminal interface.
 
 ---
 
