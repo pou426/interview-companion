@@ -268,19 +268,13 @@ function App() {
           )}
 
           {!loading && !error && question && (
-            <>
+            <div className="interview-phases">
               <div className="question-section">
-                <h2>Your Challenge:</h2>
+                <h2>Your Challenge</h2>
                 <div className="question-card">
                   <p className="question-text">{question}</p>
                 </div>
               </div>
-
-              <div className="progress-indicator">
-                <p>Current Step: <strong>{getCurrentStep()} of 5</strong></p>
-              </div>
-
-              <div className="interview-phases">
               <div className="phase-section notes-section">
                 <div className="section-header">
                   <h3>📝 Resource Estimation Notes</h3>
@@ -420,7 +414,6 @@ function App() {
                 />
               </div>
             </div>
-          </>
         )}
         </div>
 
