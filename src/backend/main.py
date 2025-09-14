@@ -15,8 +15,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
 from questions import get_system_design_questions
-from interviewer import InterviewSession, InterviewerPersona
-from prompts import get_evaluation_prompt
+from interviewer import InterviewSession
 
 # Load environment variables
 load_dotenv()
@@ -29,13 +28,6 @@ class StartInterviewResponse(BaseModel):
     session_id: str
     question: str
 
-class ProcessInputRequest(BaseModel):
-    session_id: str
-    user_input: str
-
-class ProcessInputResponse(BaseModel):
-    interviewer_response: str
-    current_phase: str
 
 class EvaluateRequest(BaseModel):
     session_id: str
@@ -101,14 +93,6 @@ async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "interview-companion-api"}
 
-# Interview endpoints
-@app.get("/api/interview/question")
-async def get_random_question():
-    """Get a random system design question."""
-    questions = get_system_design_questions()
-    selected_question = random.choice(questions)
-    return {"question": selected_question}
-
 @app.post("/api/interview/start", response_model=StartInterviewResponse)
 async def start_interview():
     """Start a new interview session with LangChain memory."""
@@ -142,33 +126,6 @@ async def start_interview():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to start interview: {str(e)}")
 
-@app.post("/api/interview/process", response_model=ProcessInputResponse)
-async def process_interview_input(request: ProcessInputRequest):
-    """Process user input through the LangChain interviewer."""
-    try:
-        cleanup_expired_sessions()
-
-        # Get session
-        session = interview_sessions.get(request.session_id)
-        if not session:
-            raise HTTPException(status_code=404, detail="Interview session not found or expired")
-
-        # Process input through LangChain
-        interviewer_response = session.process_candidate_input(request.user_input)
-
-        # Update session expiry
-        session_expiry[request.session_id] = datetime.now() + timedelta(hours=2)
-
-        return ProcessInputResponse(
-            interviewer_response=interviewer_response,
-            current_phase=session.get_current_phase_name()
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process input: {str(e)}")
-
 @app.post("/api/interview/evaluate", response_model=EvaluateResponse)
 async def evaluate_section(request: EvaluateRequest):
     """Evaluate a specific section using the AI interviewer."""
@@ -180,33 +137,22 @@ async def evaluate_section(request: EvaluateRequest):
         if not session:
             raise HTTPException(status_code=404, detail="Interview session not found or expired")
 
-        # Create evaluation prompt
-        evaluation_prompt = get_evaluation_prompt(request.section, request.content, session.question)
-
-        # Get AI evaluation through the session's LLM
-        from langchain.schema import SystemMessage, HumanMessage
-
-        messages = [
-            SystemMessage(content="You are a senior system design interviewer providing brief, constructive feedback."),
-            HumanMessage(content=evaluation_prompt)
-        ]
-
-        response = session.llm.invoke(messages)
+        # Use session's contextual evaluation method
+        response_content = session.evaluate_section_with_context(request.section, request.content)
 
         # Update session expiry
         session_expiry[request.session_id] = datetime.now() + timedelta(hours=2)
 
         # Extract score from response (simple pattern matching)
         score = None
-        content = response.content
-        if "/5" in content:
+        if "/5" in response_content:
             import re
-            score_match = re.search(r'(\d)/5', content)
+            score_match = re.search(r'(\d)/5', response_content)
             if score_match:
                 score = int(score_match.group(1))
 
         return EvaluateResponse(
-            feedback=content,
+            feedback=response_content,
             score=score
         )
 
