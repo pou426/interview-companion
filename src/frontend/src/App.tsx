@@ -56,15 +56,20 @@ function App() {
             setInterviewStarted(true);
           } else {
             localStorage.removeItem('interview-session');
+            handleStartInterview();
           }
         })
         .catch(() => {
           localStorage.removeItem('interview-session');
+          handleStartInterview();
         });
       } catch (error) {
         console.error('Error loading saved session:', error);
         localStorage.removeItem('interview-session');
+        handleStartInterview();
       }
+    } else {
+      handleStartInterview();
     }
   }, []);
 
@@ -110,12 +115,12 @@ function App() {
     }
   };
 
-  const handleEndInterview = async () => {
-    const confirmEnd = window.confirm(
-      'Are you sure you want to end the interview session? This will reset your progress.'
+  const handleRefreshInterview = async () => {
+    const confirmRefresh = window.confirm(
+      'Are you sure you want to start a new interview? This will reset your current progress and give you a new question.'
     );
 
-    if (confirmEnd) {
+    if (confirmRefresh) {
       try {
         if (sessionId) {
           await fetch(`http://localhost:8000/api/interview/${sessionId}`, {
@@ -126,7 +131,6 @@ function App() {
         console.error('Error ending interview session:', err);
       }
 
-      setInterviewStarted(false);
       setQuestion('');
       setError('');
       setSessionId('');
@@ -140,6 +144,9 @@ function App() {
         highLevelDesign: '',
         deepDive: ''
       });
+
+      // Start a new interview
+      handleStartInterview();
     }
   };
 
@@ -212,40 +219,24 @@ function App() {
     return stepNumber <= currentStep;
   };
 
-  if (!interviewStarted) {
-    return (
-      <div className="App">
-        <div className="container">
-          <h1>System Design Interview Companion</h1>
-          <div className="description">
-            <p>
-              Practice system design interviews with AI-powered feedback.
-              Get random questions from our curated collection and work through
-              the structured interview process step by step.
-            </p>
-            <p>
-              This tool will guide you through clarifying requirements,
-              defining functional and non-functional requirements, creating
-              high-level designs, and deep-diving into implementation details.
-            </p>
-          </div>
-          <button
-            className="start-button"
-            onClick={handleStartInterview}
-          >
-            Start Interview
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="App interview-mode">
       <header className="interview-header">
-        <h1>System Design Interview</h1>
-        <button onClick={handleEndInterview} className="end-button">
-          End Interview
+        <div className="header-left">
+          <h1>System Design Interview</h1>
+          <div className="info-button-container">
+            <button className="info-button">
+              ℹ️
+            </button>
+            <div className="info-popup">
+              <p>Practice system design interviews with AI-powered feedback. Get random questions and work through the structured interview process step by step.</p>
+              <p>This tool guides you through clarifying requirements, defining functional and non-functional requirements, creating high-level designs, and deep-diving into implementation details.</p>
+            </div>
+          </div>
+        </div>
+        <button onClick={handleRefreshInterview} className="refresh-button">
+          🔄 New Question
         </button>
       </header>
 
@@ -287,9 +278,9 @@ function App() {
                   </button>
                 </div>
                 <p className="phase-description">
-                  Use this area to jot down resource estimation notes throughout the interview.
-                  It's most useful after designing the system. Key numbers to consider: DAU (Daily Active Users),
-                  number of items for your specific application, QPS, storage requirements, etc.
+                  Use this space to jot down rough calculations about scale, storage, bandwidth, throughput, or 
+                  latency. This doesn’t have to be perfect or immediate — think of it as a scratchpad you can 
+                  revisit as your design evolves.
                 </p>
                 <textarea
                   className="phase-textarea"
@@ -311,7 +302,9 @@ function App() {
                   </button>
                 </div>
                 <p className="phase-description">
-                  State your assumptions about the problem and ask clarifying questions about requirements, scale, and constraints.
+                  List the key assumptions you’re making about the problem (e.g., scale, users, constraints) and write down the 
+                  clarifying questions you’d ask an interviewer. This helps frame the scope and ensures alignment before diving 
+                  into design.
                 </p>
                 <textarea
                   className="phase-textarea"
@@ -334,7 +327,8 @@ function App() {
                   </button>
                 </div>
                 <p className="phase-description">
-                  Define what the system should do. List the core features and functionalities.
+                  Capture the core capabilities the system must provide from a user’s perspective (e.g., “users can upload photos,” 
+                  “system supports search by keyword”). Focus on the “what,” not the “how.”
                 </p>
                 <textarea
                   className="phase-textarea"
@@ -357,7 +351,8 @@ function App() {
                   </button>
                 </div>
                 <p className="phase-description">
-                  Define scalability, performance, availability, consistency, and other quality attributes.
+                  List the qualities and constraints the system must satisfy — scalability, availability, latency, consistency, 
+                  reliability, security, etc. These guide trade-offs in your design choices.
                 </p>
                 <textarea
                   className="phase-textarea"
@@ -380,7 +375,8 @@ function App() {
                   </button>
                 </div>
                 <p className="phase-description">
-                  Design the overall architecture. Identify main components, services, and their interactions.
+                  Sketch the big picture: the main building blocks of your system (clients, APIs, services, databases, queues, caches, etc.) and 
+                  how they interact. Keep it at an architectural level, not implementation details.
                 </p>
                 <textarea
                   className="phase-textarea"
@@ -403,7 +399,8 @@ function App() {
                   </button>
                 </div>
                 <p className="phase-description">
-                  Dive deeper into specific components, discuss data models, algorithms, edge cases, and trade-offs.
+                  Choose 1–2 areas to explore in detail (e.g., database schema, sharding, caching strategy, consistency model). 
+                  Demonstrate your ability to reason deeply about trade-offs and technical decisions.
                 </p>
                 <textarea
                   className="phase-textarea"
@@ -420,28 +417,48 @@ function App() {
         <div className="evaluation-sidebar">
           <div className="sidebar-content">
             <h3>🤖 AI Evaluations</h3>
-            {evaluations.length === 0 ? (
-              <p className="no-evaluations">
-                Click "AI Evaluate" on any section to get feedback from the AI interviewer.
-              </p>
-            ) : (
-              <div className="evaluations-list">
-                {evaluations.map((evaluation, index) => (
-                  <div key={index} className="evaluation-item">
+            <div className="evaluations-list">
+              {['Resource Estimation Notes', '1. Assumptions & Clarifying Questions', '2. Functional Requirements', '3. Non-Functional Requirements', '4. High-Level Components & Design', '5. Deep Dive Topics'].map((sectionName) => {
+                const evaluation = evaluations.find(e => e.section === sectionName);
+                const sectionKey = {
+                  'Resource Estimation Notes': 'resourceEstimation',
+                  '1. Assumptions & Clarifying Questions': 'assumptions',
+                  '2. Functional Requirements': 'functionalRequirements',
+                  '3. Non-Functional Requirements': 'nonFunctionalRequirements',
+                  '4. High-Level Components & Design': 'highLevelDesign',
+                  '5. Deep Dive Topics': 'deepDive'
+                }[sectionName];
+                const isEvaluating = evaluatingSection === sectionKey;
+
+                return (
+                  <div key={sectionName} className="evaluation-item">
                     <div className="evaluation-header">
-                      <h4>{evaluation.section}</h4>
-                      <span className="evaluation-time">{evaluation.timestamp}</span>
-                      {evaluation.score && (
-                        <span className="evaluation-score">{evaluation.score}/5</span>
+                      <h4>{sectionName}</h4>
+                      {evaluation && (
+                        <>
+                          <span className="evaluation-time">{evaluation.timestamp}</span>
+                          {evaluation.score && (
+                            <span className="evaluation-score">{evaluation.score}/5</span>
+                          )}
+                        </>
                       )}
                     </div>
                     <div className="evaluation-feedback">
-                      {evaluation.feedback}
+                      {isEvaluating ? (
+                        <div className="evaluation-spinner">
+                          <div className="spinner"></div>
+                          <span>Evaluating...</span>
+                        </div>
+                      ) : evaluation ? (
+                        evaluation.feedback
+                      ) : (
+                        <span className="no-evaluation">Click "AI Evaluate" to get feedback</span>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
