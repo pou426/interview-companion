@@ -26,6 +26,7 @@ function App() {
   const [sessionId, setSessionId] = useState<string>('');
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [evaluatingSection, setEvaluatingSection] = useState<string>('');
+  const [isAnyEvaluating, setIsAnyEvaluating] = useState<boolean>(false);
   const [notes, setNotes] = useState<InterviewNotes>({
     assumptions: '',
     functionalRequirements: '',
@@ -154,6 +155,7 @@ function App() {
   const handleEvaluateSection = async (sectionKey: keyof InterviewNotes, sectionName: string) => {
     try {
       setEvaluatingSection(sectionKey);
+      setIsAnyEvaluating(true);
 
       const response = await fetch(apiConfig.endpoints.evaluate, {
         method: 'POST',
@@ -191,6 +193,7 @@ function App() {
       setError('Failed to get AI evaluation. Please try again.');
     } finally {
       setEvaluatingSection('');
+      setIsAnyEvaluating(false);
     }
   };
 
@@ -273,7 +276,7 @@ function App() {
                   <button
                     className="evaluate-button"
                     onClick={() => handleEvaluateSection('resourceEstimation', 'Resource Estimation Notes')}
-                    disabled={evaluatingSection === 'resourceEstimation' || !notes.resourceEstimation.trim()}
+                    disabled={isAnyEvaluating || !notes.resourceEstimation.trim()}
                   >
                     {evaluatingSection === 'resourceEstimation' ? '⏳ Evaluating...' : '🤖 AI Evaluate'}
                   </button>
@@ -297,7 +300,7 @@ function App() {
                   <button
                     className="evaluate-button"
                     onClick={() => handleEvaluateSection('assumptions', '1. Assumptions & Clarifying Questions')}
-                    disabled={evaluatingSection === 'assumptions' || !notes.assumptions.trim() || !isStepAccessible(1)}
+                    disabled={isAnyEvaluating || !notes.assumptions.trim() || !isStepAccessible(1)}
                   >
                     {evaluatingSection === 'assumptions' ? '⏳ Evaluating...' : '🤖 AI Evaluate'}
                   </button>
@@ -322,7 +325,7 @@ function App() {
                   <button
                     className="evaluate-button"
                     onClick={() => handleEvaluateSection('functionalRequirements', '2. Functional Requirements')}
-                    disabled={evaluatingSection === 'functionalRequirements' || !notes.functionalRequirements.trim() || !isStepAccessible(2)}
+                    disabled={isAnyEvaluating || !notes.functionalRequirements.trim() || !isStepAccessible(2)}
                   >
                     {evaluatingSection === 'functionalRequirements' ? '⏳ Evaluating...' : '🤖 AI Evaluate'}
                   </button>
@@ -346,7 +349,7 @@ function App() {
                   <button
                     className="evaluate-button"
                     onClick={() => handleEvaluateSection('nonFunctionalRequirements', '3. Non-Functional Requirements')}
-                    disabled={evaluatingSection === 'nonFunctionalRequirements' || !notes.nonFunctionalRequirements.trim() || !isStepAccessible(3)}
+                    disabled={isAnyEvaluating || !notes.nonFunctionalRequirements.trim() || !isStepAccessible(3)}
                   >
                     {evaluatingSection === 'nonFunctionalRequirements' ? '⏳ Evaluating...' : '🤖 AI Evaluate'}
                   </button>
@@ -370,7 +373,7 @@ function App() {
                   <button
                     className="evaluate-button"
                     onClick={() => handleEvaluateSection('highLevelDesign', '4. High-Level Components & Design')}
-                    disabled={evaluatingSection === 'highLevelDesign' || !notes.highLevelDesign.trim() || !isStepAccessible(4)}
+                    disabled={isAnyEvaluating || !notes.highLevelDesign.trim() || !isStepAccessible(4)}
                   >
                     {evaluatingSection === 'highLevelDesign' ? '⏳ Evaluating...' : '🤖 AI Evaluate'}
                   </button>
@@ -394,7 +397,7 @@ function App() {
                   <button
                     className="evaluate-button"
                     onClick={() => handleEvaluateSection('deepDive', '5. Deep Dive Topics')}
-                    disabled={evaluatingSection === 'deepDive' || !notes.deepDive.trim() || !isStepAccessible(5)}
+                    disabled={isAnyEvaluating || !notes.deepDive.trim() || !isStepAccessible(5)}
                   >
                     {evaluatingSection === 'deepDive' ? '⏳ Evaluating...' : '🤖 AI Evaluate'}
                   </button>
