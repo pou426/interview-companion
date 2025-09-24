@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import { apiConfig } from './config/api';
 
 interface InterviewNotes {
   assumptions: string;
@@ -40,7 +41,7 @@ function App() {
       try {
         const sessionData = JSON.parse(savedSession);
 
-        fetch(`http://localhost:8000/api/interview/validate`, {
+        fetch(apiConfig.endpoints.validate, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ function App() {
       setLoading(true);
       setError('');
 
-      const response = await fetch('http://localhost:8000/api/interview/start', {
+      const response = await fetch(apiConfig.endpoints.start, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +124,7 @@ function App() {
     if (confirmRefresh) {
       try {
         if (sessionId) {
-          await fetch(`http://localhost:8000/api/interview/${sessionId}`, {
+          await fetch(apiConfig.endpoints.end(sessionId), {
             method: 'DELETE',
           });
         }
@@ -154,7 +155,7 @@ function App() {
     try {
       setEvaluatingSection(sectionKey);
 
-      const response = await fetch('http://localhost:8000/api/interview/evaluate', {
+      const response = await fetch(apiConfig.endpoints.evaluate, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

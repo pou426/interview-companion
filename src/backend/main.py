@@ -80,7 +80,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # React dev server
         "https://interview-companion-beta.vercel.app",  # Your Vercel deployment
-        os.getenv("FRONTEND_URL", "http://localhost:3000")  # Production frontend
+        os.getenv("FRONTEND_URL", "https://interview-companion-beta.vercel.app")  # Production frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],

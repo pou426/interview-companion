@@ -19,6 +19,33 @@
 - Node.js 16+
 - OpenAI API key
 
+## Environment Variables
+
+### Backend Environment Variables
+
+The backend requires the following environment variables:
+
+- `OPENAI_API_KEY`: Your OpenAI API key (required)
+- `FRONTEND_URL`: The URL of your frontend application (optional, defaults to production frontend)
+- `PORT`: Port number for the backend server (optional, defaults to 8000, automatically set by Render)
+
+### Frontend Environment Variables
+
+The frontend requires the following environment variables:
+
+- `REACT_APP_API_URL`: The URL of your backend API (optional, defaults to http://localhost:8000 for development)
+
+### Deployment Configuration
+
+For production deployments:
+
+**Backend (Render)**: Set environment variables in Render dashboard:
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `FRONTEND_URL`: https://interview-companion-beta.vercel.app
+
+**Frontend (Vercel)**: Set environment variables in Vercel dashboard:
+- `REACT_APP_API_URL`: https://interview-companion.onrender.com
+
 ### Installation & Setup
 
 1. **Clone the repository and set up environment**:
