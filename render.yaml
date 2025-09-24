@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: interview-companion-backend
+    env: python
+    buildCommand: "pip install -r src/backend/requirements.txt"
+    startCommand: "cd src/backend && python main.py"
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.11"
+    healthCheckPath: /health
